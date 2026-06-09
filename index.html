@@ -10,11 +10,21 @@
         .container { max-width: 720px; width: 100%; padding: 24px; box-sizing: border-box; }
         header { text-align: center; margin-bottom: 18px; }
         h1 { margin: 0 0 6px 0; }
+        .type-controls { display:flex; gap:8px; justify-content:center; margin-bottom:12px; }
+        .type-btn { padding:8px 14px; font-size:14px; border:1px solid #ccc; border-radius:999px; background:#fff; cursor:pointer; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+        .type-btn.selected { border-color:#333; color:#fff; }
+        .type-btn.personal.selected { background:#d33; }
+        .type-btn.business.selected { background:#1565c0; }
+        .type-btn.personal { color:#d33; }
+        .type-btn.business { color:#1565c0; }
         .controls { display:flex; gap:8px; margin-bottom:12px; }
-        input[type="text"] { flex:1; padding:8px 10px; font-size:16px; }
-        button { padding:8px 12px; font-size:14px; cursor:pointer; }
+        input[type="text"] { flex:1; padding:8px 10px; font-size:16px; border:1px solid #ccc; border-radius:999px; }
+        button { padding:8px 12px; font-size:14px; cursor:pointer; border-radius:999px; border:1px solid #ccc; background:#f5f5f5; }
+        button:hover { background:#e8e8e8; }
         form#todosForm { border-top:1px solid #eee; padding-top:12px; }
-        .todo-item { display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid #f3f3f3; }
+        .todo-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid #f3f3f3; border-left:4px solid transparent; border-radius:8px; margin-bottom:6px; }
+        .todo-item.personal { border-left-color:#d33; background:#feeaea; }
+        .todo-item.business { border-left-color:#1565c0; background:#e7f0ff; }
         .todo-item label { flex:1; word-break:break-word; }
         .todo-item.completed label { text-decoration: line-through; color:#888; }
         .actions { margin-top:12px; display:flex; gap:8px; }
@@ -27,6 +37,11 @@
             <h1>待办清单</h1>
             <div class="muted">输入事项并点击“添加”，勾选项后可删除，支持多选删除。</div>
         </header>
+
+        <div class="type-controls" role="group" aria-label="选择事件类型">
+            <button type="button" id="personalBtn" class="type-btn personal selected">个人</button>
+            <button type="button" id="businessBtn" class="type-btn business">商务</button>
+        </div>
 
         <div class="controls" role="region" aria-label="添加待办">
             <input id="todoInput" type="text" placeholder="输入将要做的事情" aria-label="待办输入框" />
@@ -50,10 +65,13 @@
         const todoListEl = document.getElementById('todoList');
         const deleteBtn = document.getElementById('deleteBtn');
         const selectAllBtn = document.getElementById('selectAllBtn');
+        const personalBtn = document.getElementById('personalBtn');
+        const businessBtn = document.getElementById('businessBtn');
 
         const STORAGE_KEY = 'todoListData';
         let todos = [];
         let allSelected = false;
+        let selectedType = 'personal';
 
         function saveTodos() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
@@ -67,6 +85,7 @@
                 if (Array.isArray(parsed)) {
                     todos = parsed.map(item => ({
                         text: String(item.text || ''),
+                        type: item.type === 'business' ? 'business' : 'personal',
                         selected: !!item.selected,
                         done: !!item.done
                     }));
@@ -74,6 +93,12 @@
             } catch (error) {
                 console.warn('无法加载待办数据:', error);
             }
+        }
+
+        function setType(type) {
+            selectedType = type;
+            personalBtn.classList.toggle('selected', type === 'personal');
+            businessBtn.classList.toggle('selected', type === 'business');
         }
 
         function render() {
@@ -84,7 +109,7 @@
             }
             todos.forEach((t, i) => {
                 const item = document.createElement('div');
-                item.className = 'todo-item' + (t.done ? ' completed' : '');
+                item.className = 'todo-item ' + (t.type === 'business' ? 'business' : 'personal') + (t.done ? ' completed' : '');
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -109,12 +134,15 @@
         function addTodo() {
             const text = input.value.trim();
             if (!text) return;
-            todos.push({ text, selected: false, done: false });
+            todos.push({ text, type: selectedType, selected: false, done: false });
             input.value = '';
             render();
             saveTodos();
             input.focus();
         }
+
+        personalBtn.addEventListener('click', () => setType('personal'));
+        businessBtn.addEventListener('click', () => setType('business'));
 
         addBtn.addEventListener('click', addTodo);
         input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addTodo(); } });

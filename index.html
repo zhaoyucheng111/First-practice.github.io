@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -50,8 +51,30 @@
         const deleteBtn = document.getElementById('deleteBtn');
         const selectAllBtn = document.getElementById('selectAllBtn');
 
+        const STORAGE_KEY = 'todoListData';
         let todos = [];
         let allSelected = false;
+
+        function saveTodos() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+        }
+
+        function loadTodos() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data) return;
+            try {
+                const parsed = JSON.parse(data);
+                if (Array.isArray(parsed)) {
+                    todos = parsed.map(item => ({
+                        text: String(item.text || ''),
+                        selected: !!item.selected,
+                        done: !!item.done
+                    }));
+                }
+            } catch (error) {
+                console.warn('无法加载待办数据:', error);
+            }
+        }
 
         function render() {
             todoListEl.innerHTML = '';
@@ -70,6 +93,7 @@
                 checkbox.checked = !!t.selected;
                 checkbox.addEventListener('change', (e) => {
                     todos[i].selected = e.target.checked;
+                    saveTodos();
                 });
 
                 const label = document.createElement('label');
@@ -88,6 +112,7 @@
             todos.push({ text, selected: false, done: false });
             input.value = '';
             render();
+            saveTodos();
             input.focus();
         }
 
@@ -100,15 +125,17 @@
             if (toRemove.length === 0) return alert('请先选择要删除的事项');
             todos = todos.filter(t => !t.selected);
             render();
+            saveTodos();
         });
 
         selectAllBtn.addEventListener('click', () => {
             allSelected = !allSelected;
             todos = todos.map(t => ({ ...t, selected: allSelected }));
             render();
+            saveTodos();
         });
 
-        // 初始渲染
+        loadTodos();
         render();
     </script>
 </body>

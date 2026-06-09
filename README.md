@@ -60,3 +60,11 @@ git push -u origin main
 4. 部署成功后，页面地址通常为 `https://YOUR_USERNAME.github.io/YOUR_REPO/`。你也可以在仓库的 `Settings → Pages` 查看生效的网址。
 
 注意：工作流会把仓库根目录内容作为站点内容发布，如果你希望只发布 `dist/` 或其他子目录，请告知，我会调整工作流。
+
+如果当前 GitHub Pages 还没有启用，工作流会在仓库秘密 `PAGES_PAT` 存在时尝试自动启用 Pages。没有设置该秘钥时，工作流将跳过自动启用步骤，需先在仓库设置中手动启用 Pages：`Settings → Pages`，将源设置为 `main` 分支和根目录，然后保存。
+
+要让自动启用工作流正常运行，请创建一个 GitHub 个人访问令牌（PAT），至少包含 `repo` 范围或 `administration:write` 和 `pages:write` 权限，并将其保存为仓库秘密 `PAGES_PAT`。
+
+当前该仓库已重定向为 GitHub Pages 站点仓库 `First-practice.github.io`，所以网站应发布到：
+
+https://zhaoyucheng111.github.io/
